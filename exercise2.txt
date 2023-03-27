@@ -1,0 +1,27 @@
+UNF
+Dentist(staffNo , dentist , patientNo , patient , app , surgeryNo)
+
+1NF:
+Dentist(*staffNo* , dentist , patientNo , patient , *appDate* , *appTime* , surgeryNo)
+
+=> no repeating groups (appointement divided into appDate and appTime)
+=> all data is present
+=> All attributes depend on the primary keys (staffNo, appDate , appTime)
+
+
+2NF:
+dentist = only depends on staffNo
+patientNo = depends on all
+patient = depends on all
+surgeryNo = depends on staffNo, appDate
+
+Dentist(*staffNo* , dentist)
+Surgery(*staffNo* , *appDate* , surgeryNo)
+Appointement(*staffNo* , *appDate* , *appTime* , patientNo , patient )
+
+
+3NF:
+Dentist(*staffNo* , dentist)
+Surgery(*staffNo* , *appDate* , surgeryNo)
+Appointement(*staffNo* , *appDate* , *appTime* , patientNo )
+Patient(*patientNo* , patient)
