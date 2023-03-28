@@ -1,0 +1,169 @@
+MariaDB [college2]> SELECT concat(stdLastName, " ", stdFirstName) AS Student_name, stdCity, stdGPA FROM student WHERE stdGPA >= 3.7;
++------------------+---------+--------+
+| Student_name     | stdCity | stdGPA |
++------------------+---------+--------+
+| COLAN CRISTOPHER | SEATTLE |   4.00 |
+| PILGRIM WILLIAM  | BOTHELL |   3.80 |
++------------------+---------+--------+
+2 rows in set (0.000 sec)
+
+
+MariaDB [college2]> SELECT concat(FacFirstName, " ", FacLastName) AS fac_name, FacHireDate FROM faculty WHERE YEAR(FacHireDate) BETWEEN 1999 AND 2000;
++------------------+-------------+
+| fac_name         | FacHireDate |
++------------------+-------------+
+| CRISTOPHER COLAN | 1999-03-01  |
+| JULIA MILLS      | 2000-03-15  |
++------------------+-------------+
+2 rows in set (0.000 sec)
+
+MariaDB [college2]> SELECT OfferNo, CourseNo, FacSSN FROM offering WHERE (OffTerm="FALL" AND OffYear=2005) OR (OffTerm="WINTER" AND OffYear = 2006);
++---------+----------+-------------+
+| OfferNo | CourseNo | FacSSN      |
++---------+----------+-------------+
+|    1234 | IS320    | 098-76-5432 |
+|    4321 | IS320    | 098-76-5432 |
+|    4444 | IS320    | 543-21-0987 |
+|    5555 | FIN300   | 765-43-2109 |
+|    5678 | IS480    | 987-65-4321 |
+|    6666 | FIN450   | 987-65-4321 |
++---------+----------+-------------+
+6 rows in set (0.000 sec)
+
+MariaDB [college2]> SELECT OfferNo,course.CourseNo, concat(OffDays, " ", OffTime) AS days_time FROM course JOIN offering ON course.CourseNo = offering.CourseNo WHERE course.CourseNo IN (SELECT CourseNo FROM course WHERE crsDesc like "%DATABASE%" OR crsDesc like "%PROGRAMMING%") AND OffTerm = "SPRING" AND OffYear = 2006;
++---------+----------+--------------+
+| OfferNo | CourseNo | days_time    |
++---------+----------+--------------+
+|    3333 | IS320    | MW 08:30:00  |
+|    5679 | IS480    | TTH 15:30:00 |
++---------+----------+--------------+
+2 rows in set (0.001 sec)
+
+MariaDB [college2]> SELECT OfferNo, CourseNo, concat(FacFirstName, " ", FacLastName), OffTerm, OffYear, FacRank FROM faculty JOIN offering ON faculty.FacSSN = offering.FacSSN WHERE CourseNo like "IS%" AND OffTerm="FALL" AND OffYear=2005 AND FacRank="ASST";
++---------+----------+----------------------------------------+---------+---------+---------+
+| OfferNo | CourseNo | concat(FacFirstName, " ", FacLastName) | OffTerm | OffYear | FacRank |
++---------+----------+----------------------------------------+---------+---------+---------+
+|    1234 | IS320    | LEONARD VINCE                          | FALL    |    2005 | ASST    |
+|    4321 | IS320    | LEONARD VINCE                          | FALL    |    2005 | ASST    |
++---------+----------+----------------------------------------+---------+---------+---------+
+2 rows in set (0.000 sec)
+
+MariaDB [college2]> SELECT stdMajor, avg(StdGPA) FROM student GROUP BY StdMajor;
++----------+-------------+
+| stdMajor | avg(StdGPA) |
++----------+-------------+
+| ACCT     |    3.400000 |
+| FIN      |    2.800000 |
+| IS       |    3.233333 |
++----------+-------------+
+3 rows in set (0.000 sec)
+
+MariaDB [college2]> SELECT OffYear, count(OfferNo), count(DISTINCT(CourseNo)) FROM offering GROUP BY OffYear;
++---------+----------------+---------------------------+
+| OffYear | count(OfferNo) | count(DISTINCT(CourseNo)) |
++---------+----------------+---------------------------+
+|    2005 |              3 |                         2 |
+|    2006 |             10 |                         6 |
++---------+----------------+---------------------------+
+2 rows in set (0.000 sec)
+
+MariaDB [college2]> SELECT avg(stdGPA), StdMajor FROM student WHERE stdClass="JR" OR stdClass="SR" GROUP BY
+StdMajor HAVING avg(stdGPA) >3.1;
++-------------+----------+
+| avg(stdGPA) | StdMajor |
++-------------+----------+
+|    3.500000 | ACCT     |
+|    3.150000 | IS       |
++-------------+----------+
+2 rows in set (0.000 sec)
+
+
+MariaDB [college2]> SELECT stdMajor, StdClass, max(StdGPA), min(StdGPA) FROM student GROUP BY StdMajor, StdClass;
++----------+----------+-------------+-------------+
+| stdMajor | StdClass | max(StdGPA) | min(StdGPA) |
++----------+----------+-------------+-------------+
+| ACCT     | JR       |        3.50 |        3.50 |
+| ACCT     | SO       |        3.30 |        3.30 |
+| FIN      | JR       |        2.70 |        2.50 |
+| FIN      | SR       |        3.20 |        3.20 |
+| IS       | FR       |        3.00 |        3.00 |
+| IS       | JR       |        3.60 |        3.60 |
+| IS       | SO       |        3.80 |        3.80 |
+| IS       | SR       |        4.00 |        2.20 |
++----------+----------+-------------+-------------+
+8 rows in set (0.000 sec)
+
+MariaDB [college2]> SELECT course.CourseNo, crsDesc, count(OfferNo) FROM course JOIN offering ON course.courseNo = offering.CourseNo WHERE course.CourseNo like "IS%" GROUP BY crsDesc;
++----------+--------------------------------------+----------------+
+| CourseNo | crsDesc                              | count(OfferNo) |
++----------+--------------------------------------+----------------+
+| IS320    | FUNDAMENTALS OF BUSINESS PROGRAMMING |              6 |
+| IS480    | FUNDAMENTALS OF DATABASE MANAGEMENT  |              2 |
+| IS460    | SYSTEMS ANALYSIS                     |              2 |
++----------+--------------------------------------+----------------+
+3 rows in set (0.001 sec)
+
+MariaDB [college2]> SELECT concat(StdFirstName, " ", StdLastName) AS StdName, StdCity, StdState, StdGPA FROM
+ student WHERE StdClass="JR" ORDER BY StdGPA;
++-----------------+---------+----------+--------+
+| StdName         | StdCity | StdState | StdGPA |
++-----------------+---------+----------+--------+
+| ROBERTO MORALES | SEATTLE | WA       |   2.50 |
+| BOB NORBERT     | BOTHELL | WA       |   2.70 |
+| CANDY KENDALL   | TACOMA  | WA       |   3.50 |
+| MARIAH DODGE    | SEATTLE | WA       |   3.60 |
++-----------------+---------+----------+--------+
+4 rows in set (0.000 sec)
+
+
+MariaDB [college2]> SELECT DISTINCT FacCity, FacState FROM faculty;
++----------+----------+
+| FacCity  | FacState |
++----------+----------+
+| SEATTLE  | WA       |
+| BOTHELL  | WA       |
+| BELLEVUE | WA       |
++----------+----------+
+3 rows in set (0.000 sec)
+
+MariaDB [college2]> SELECT StdFirstName, StdLastName, OfferNo, EnrGrade FROM enrollment JOIN student ON enrollment.StdSSN = student.StdSSN WHERE EnrGrade >= 3.5;
++--------------+-------------+---------+----------+
+| StdFirstName | StdLastName | OfferNo | EnrGrade |
++--------------+-------------+---------+----------+
+| CANDY        | KENDALL     |    1234 |     3.50 |
+| MARIAH       | DODGE       |    1234 |     3.80 |
+| HOMER        | WELLS       |    4321 |     3.50 |
+| ROBERTO      | MORALES     |    4321 |     3.50 |
+| BOB          | NORBERT     |    5679 |     3.70 |
+| ROBERTO      | MORALES     |    5679 |     3.80 |
+| MARIAH       | DODGE       |    6666 |     3.60 |
+| LUKE         | BRAZZI      |    7777 |     3.70 |
+| BOB          | NORBERT     |    9876 |     3.50 |
+| WILLIAM      | PILGRIM     |    9876 |     4.00 |
++--------------+-------------+---------+----------+
+10 rows in set (0.000 sec)
+
+MariaDB [college2]> SELECT DISTINCT StdFirstName, StdLastName FROM enrollment JOIN student ON enrollment.StdSSN = student.StdSSN WHERE EnrGrade >= 3.5;
++--------------+-------------+
+| StdFirstName | StdLastName |
++--------------+-------------+
+| CANDY        | KENDALL     |
+| MARIAH       | DODGE       |
+| HOMER        | WELLS       |
+| ROBERTO      | MORALES     |
+| BOB          | NORBERT     |
+| LUKE         | BRAZZI      |
+| WILLIAM      | PILGRIM     |
++--------------+-------------+
+7 rows in set (0.001 sec)
+
+MariaDB [college2]> SELECT offering.OfferNo, offering.CourseNo, OffDays, OffLocation, OffTime, FacFirstName, FacLastName FROM student JOIN enrollment ON student.StdSSN = enrollment.StdSSN JOIN offering ON enrollment.OfferNo = offering.OfferNo JOIN faculty ON offering.FacSSN = faculty.FacSSN WHERE StdFirstName="Bob" AND StdLastName="Norbert" AND OffTerm="Spring" AND OffYear=2006;
++---------+----------+---------+-------------+----------+--------------+-------------+
+| OfferNo | CourseNo | OffDays | OffLocation | OffTime  | FacFirstName | FacLastName |
++---------+----------+---------+-------------+----------+--------------+-------------+
+|    5679 | IS480    | TTH     | BLM412      | 15:30:00 | CRISTOPHER   | COLAN       |
+|    9876 | IS460    | TTH     | BLM307      | 13:30:00 | LEONARD      | FIBON       |
++---------+----------+---------+-------------+----------+--------------+-------------+
+2 rows in set (0.001 sec)
+
+
