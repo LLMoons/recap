@@ -1,0 +1,174 @@
+MariaDB [vacation]> SELECT guest.guestno, guest.guestname, guest.guestaddress, hotel.city FROM guest JOIN booking ON guest.guestno = booking.guestno JOIN hotel ON booking.hotelno = hotel.hotelno WHERE hotel.city = "London" ORDER BY guest.guestname;
++---------+--------------+-----------------------+--------+
+| guestno | guestname    | guestaddress          | city   |
++---------+--------------+-----------------------+--------+
+|   10005 | Carol Farrel | 6 Achray St, Glasgow  | London |
+|   10004 | Joe Keogh    | 2 Fergus Dr, Aberdeen | London |
+|   10001 | John Kay     | 56 High St, London    | London |
+|   10001 | John Kay     | 56 High St, London    | London |
+|   10002 | Mike Ritchie | 18 Tain St, London    | London |
+|   10002 | Mike Ritchie | 18 Tain St, London    | London |
+|   10006 | Tina Murphy  | 63 Well St, Glasgow   | London |
++---------+--------------+-----------------------+--------+
+MariaDB [vacation]> SELECT DISTINCT(guest.guestno), guest.guestname, guest.guestaddress, hotel.city FROM guest JOIN booking ON guest.guestno = booking.guestno JOIN hotel ON booking.hotelno = hotel.hotelno WHERE hotel.city = "London" ORDER BY guest.guestname;
++---------+--------------+-----------------------+--------+
+| guestno | guestname    | guestaddress          | city   |
++---------+--------------+-----------------------+--------+
+|   10005 | Carol Farrel | 6 Achray St, Glasgow  | London |
+|   10004 | Joe Keogh    | 2 Fergus Dr, Aberdeen | London |
+|   10001 | John Kay     | 56 High St, London    | London |
+|   10002 | Mike Ritchie | 18 Tain St, London    | London |
+|   10006 | Tina Murphy  | 63 Well St, Glasgow   | London |
++---------+--------------+-----------------------+--------+
+
+
+MariaDB [vacation]> SELECT * FROM room WHERE (type="double" OR type="family") AND price<40.00 ORDER BY price
+ asc;
++--------+---------+--------+-------+
+| roomno | hotelno | type   | price |
++--------+---------+--------+-------+
+|    801 | ch02    | double | 15.00 |
+|    601 | fb01    | double | 29.00 |
+|   1001 | dc01    | double | 30.00 |
+|   1101 | dc01    | family | 35.00 |
+|    701 | fb01    | family | 39.00 |
++--------+---------+--------+-------+
+
+MariaDB [vacation]> SELECT * FROM booking WHERE dateto IS NULL;
++---------+---------+------------+--------+--------+
+| hotelno | guestno | datefrom   | dateto | roomno |
++---------+---------+------------+--------+--------+
+| ch01    |   10006 | 2022-04-21 | NULL   |   1101 |
+| dc01    |   10003 | 2022-05-20 | NULL   |   1001 |
+| fb01    |   10001 | 2022-05-01 | NULL   |    701 |
++---------+---------+------------+--------+--------+
+
+MariaDB [vacation]> SELECT AVG(price) AS average_price FROM room;
++---------------+
+| average_price |
++---------------+
+|     35.748333 |
++---------------+
+
+MariaDB [vacation]> SELECT SUM(price) AS total_revenue FROM room WHERE type ="double";
++---------------+
+| total_revenue |
++---------------+
+|        160.00 |
++---------------+
+
+MariaDB [vacation]> SELECT count(*) AS num_guests FROM guest JOIN booking ON guest.guestno = booking.guestno
+ WHERE booking.datefrom BETWEEN '2022-08-01' AND '2022-08-31';
++------------+
+| num_guests |
++------------+
+|          0 |
++------------+
+
+MariaDB [vacation]> SELECT count(DISTINCT(guest.guestno)) AS num_guests FROM guest JOIN booking ON guest.guestno = booking.guestno WHERE booking.datefrom BETWEEN '2022-05-01' AND '2022-05-31';
+
++------------+
+| num_guests |
++------------+
+|          4 |
++------------+
+
+MariaDB [vacation]> SELECT hotel.hotelname, room.type, room.price FROM hotel JOIN room ON hotel.hotelno = room.hotelno WHERE hotel.hotelname="The Tower Hotel";
++-----------------+--------+-------+
+| hotelname       | type   | price |
++-----------------+--------+-------+
+| The Tower Hotel | single | 19.00 |
+| The Tower Hotel | double | 29.00 |
+| The Tower Hotel | family | 39.00 |
++-----------------+--------+-------+
+
+MariaDB [vacation]> SELECT guest.guestname FROM guest JOIN booking ON guest.guestno = booking.guestno JOIN hotel ON booking.hotelno = hotel.hotelno WHERE hotel.hotelname = "The Tower Hotel" AND DATE(NOW()) BETWEEN datefrom AND dateto;
+
+
+MariaDB [vacation]> SELECT guest.guestname FROM guest JOIN booking ON guest.guestno = booking.guestno JOIN hotel ON booking.hotelno = hotel.hotelno WHERE hotel.hotelname = "The Tower Hotel";
++--------------+
+| guestname    |
++--------------+
+| John Kay     |
+| John Kay     |
+| Mike Ritchie |
+| Joe Keogh    |
+| Carol Farrel |
++--------------+
+
+MariaDB [vacation]> SELECT room.roomno, room.type, room.price, guest.guestname FROM room JOIN hotel ON room.hotelno = hotel.hotelno JOIN booking ON hotel.hotelno =  booking.hotelno AND booking.roomno = room.roomno JOIN guest ON booking.guestno = guest.guestno WHERE hotel.hotelname = "The Tower Hotel";
++--------+--------+-------+--------------+
+| roomno | type   | price | guestname    |
++--------+--------+-------+--------------+
+|    501 | single | 19.00 | John Kay     |
+|    701 | family | 39.00 | John Kay     |
+|    601 | double | 29.00 | Mike Ritchie |
+|    601 | double | 29.00 | Joe Keogh    |
+|    501 | single | 19.00 | Carol Farrel |
++--------+--------+-------+--------------+
+
+MariaDB [vacation]> SELECT sum(price) FROM room JOIN hotel ON room.hotelno = hotel.hotelno JOIN booking ON hotel.hotelno = booking.hotelno AND booking.roomno = room.roomno WHERE DATE(NOW()) BETWEEN datefrom AND dateto AND hotelname = "The Tower Hotel";
++------------+
+| sum(price) |
++------------+
+|       NULL |
++------------+
+
+MariaDB [vacation]> SELECT roomno AS unoccupied_rooms FROM room JOIN hotel ON room.hotelno = hotel.hotelno WHERE roomno NOT IN (SELECT room.roomno FROM room JOIN booking ON room.roomno = booking.roomno AND room.hotelno = booking.hotelno JOIN hotel on booking.hotelno = hotel.hotelno WHERE hotelname = "The Tower Hotel" AND '2022-01-05' BETWEEN datefrom AND dateto) AND hotelname = "The Tower Hotel";
++------------------+
+| unoccupied_rooms |
++------------------+
+|              501 |
+|              701 |
++------------------+
+
+MariaDB [vacation]> SELECT sum(price) AS lost_income FROM room JOIN hotel ON room.hotelno = hotel.hotelno WHERE hotelname = "The Tower Hotel" AND roomno IN (SELECT roomno AS unoccupied_rooms FROM room JOIN hotel ON room.hotelno = hotel.hotelno WHERE roomno NOT IN (SELECT room.roomno FROM room JOIN booking ON room.roomno =
+booking.roomno AND room.hotelno = booking.hotelno JOIN hotel on booking.hotelno = hotel.hotelno WHERE hotelname = "The Tower Hotel" AND '2022-01-05' BETWEEN datefrom AND dateto) AND hotelname = "The Tower Hotel");
++-------------+
+| lost_income |
++-------------+
+|       58.00 |
++-------------+
+
+MariaDB [vacation]> SELECt count(*), hotelname FROM room JOIN hotel ON room.hotelno = hotel.hotelno WHERE city = "London" GROUP BY hotelname;
++----------+-----------------+
+| count(*) | hotelname       |
++----------+-----------------+
+|        2 | Omni Shoreham   |
+|        2 | Phoenix Park    |
+|        3 | The Tower Hotel |
++----------+-----------------+
+MariaDB [vacation]> UPDATE room SET price = price*1.05;
+Query OK, 12 rows affected (0.004 sec)
+Rows matched: 12  Changed: 12  Warnings: 0
+
+MariaDB [vacation]> SELECT * FROM (SELECT hotelname, type, count(type) FROM hotel JOIN room ON hotel.hotelno = room.hotelno  JOIN booking ON booking.roomno = room.roomno AND hotel.hotelno = booking.hotelno WHERE city = "London" GROUP BY hotelname, type ORDER BY count(type) desc) AS sel1 GROUP BY sel1.hotelname;
++-----------------+--------+-------------+
+| hotelname       | type   | count(type) |
++-----------------+--------+-------------+
+| Omni Shoreham   | family |           1 |
+| Phoenix Park    | double |           1 |
+| The Tower Hotel | double |           2 |
++-----------------+--------+-------------+
+3 rows in set (0.001 sec)
+
+
+MariaDB [vacation]> SELECT * FROM room;
++--------+---------+--------+-------+
+| roomno | hotelno | type   | price |
++--------+---------+--------+-------+
+|    501 | fb01    | single | 19.95 |
+|    601 | fb01    | double | 30.45 |
+|    701 | ch02    | single | 10.50 |
+|    701 | fb01    | family | 40.95 |
+|    801 | ch02    | double | 15.75 |
+|    901 | dc01    | single | 18.90 |
+|   1001 | ch01    | single | 31.50 |
+|   1001 | dc01    | double | 31.50 |
+|   1001 | fb02    | single | 60.90 |
+|   1101 | ch01    | family | 63.00 |
+|   1101 | dc01    | family | 36.75 |
+|   1101 | fb02    | double | 90.30 |
++--------+---------+--------+-------+
+12 rows in set (0.000 sec)
+
